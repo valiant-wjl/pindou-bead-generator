@@ -23,6 +23,10 @@
 
 ![cartoon](docs/showcase_cartoon.png)
 
+## 两种形态
+- **纯前端版 `web/`（推荐部署）** — 零后端、纯静态、浏览器本地处理，秒开、国内好托管。拼豆转换全在浏览器跑；AI 卡通化由用户填自己的 key（或接后端代理）。直接把 `web/` 丢到任意静态托管（OSS/COS/Vercel/Pages）即可。本地预览：`cd web && python -m http.server 8530` → http://localhost:8530
+- **Streamlit 版 `app.py`** — Python 工作台，适合本地调参/做 AI 后端。
+
 ## 目录结构
 ```
 beadgen.py        核心算法（缩放→去背景→全局k-means减色→分割拍平→去杂点→渲染→PDF）

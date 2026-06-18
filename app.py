@@ -64,6 +64,11 @@ with st.sidebar:
                            help="把柔和/阴影色推向本色，减少误配成杂色（如暗黄→橄榄绿）。")
     min_area = st.slider("最小色块（颗）", 0, 80, 20, step=5,
                          help="用量少于此数的杂色并入邻色。越大色号越少越好拼，但小细节会被吞。")
+    detail = st.checkbox("保细节模式（卡通 / AI输出 / 像素图）", value=use_ai,
+                         help="已经干净的图用这个：逐格匹配保锐利 + 合并相近色，比去噪模式不糊。"
+                              "AI 卡通化默认走它；嘈杂照片才关掉用去噪。")
+    max_colors = st.slider("保细节·最大色数", 8, 40, 20, step=1, disabled=not detail,
+                           help="保细节模式下把相近色合并到这个数以内，越小越好拼。")
     st.divider()
     remove_bg = st.checkbox("剥离白色背景", value=True)
     autocrop = st.checkbox("自动裁剪到主体（强烈建议）", value=True,
@@ -100,7 +105,7 @@ else:
 grid, used, counts = beadgen.process(
     bead_src, grid_w=grid_w, k=k, remove_bg=remove_bg, bg_thresh=bg_thresh,
     flatten=flatten, despeckle=despeckle, edge_trim=edge_trim, autocrop=autocrop,
-    saturation=saturation, min_area=min_area)
+    saturation=saturation, min_area=min_area, detail=detail, max_colors=max_colors)
 guide, bead_to_num = beadgen.render(grid, used, cell=22, show_grid=True, show_ids=True)
 preview = beadgen.render_preview(grid, cell=16)
 

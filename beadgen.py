@@ -81,6 +81,37 @@ def _nearest_bead(rgb):
     return int(np.argmin(np.linalg.norm(_PAL_LAB - lab, axis=1)))
 
 
+def _nearest_all(arr_rgb):
+    """逐格匹配：每个格子直接最近邻到色板（保细节，不做全局减色）。arr_rgb:(h,w,3) 0-255"""
+    h, w, _ = arr_rgb.shape
+    lab = skcolor.rgb2lab(arr_rgb.reshape(-1, 1, 3) / 255.0).reshape(-1, 3)
+    d = np.linalg.norm(lab[:, None, :] - _PAL_LAB[None, :, :], axis=2)
+    return d.argmin(axis=1).reshape(h, w)
+
+
+def _merge_similar(grid, fg, delta=10, target=24):
+    """凝聚式合并：反复把「用量较少」的色号并入色板里 Lab 最近的「保留色」，
+    直到色数≤target 或最近的两色 ΔE>delta。保细节的同时压低色号数。"""
+    from collections import Counter as _C
+    out = grid.copy()
+    while True:
+        cnt = _C(int(v) for v in out.reshape(-1) if v >= 0)
+        used = list(cnt)
+        if len(used) <= 2:
+            break
+        labs = _PAL_LAB[used]
+        D = np.linalg.norm(labs[:, None, :] - labs[None, :, :], axis=2)
+        np.fill_diagonal(D, 1e9)
+        i, j = np.unravel_index(D.argmin(), D.shape)
+        if len(used) <= target and D[i, j] > delta:
+            break
+        # 用量少的并入用量多的
+        a, b = used[i], used[j]
+        lose, keep = (a, b) if cnt[a] <= cnt[b] else (b, a)
+        out[out == lose] = keep
+    return out
+
+
 def _remove_white_bg(arr, thresh):
     """从四角洪水填充剥离近白背景，返回 mask(True=前景)"""
     h, w, _ = arr.shape
@@ -221,9 +252,11 @@ def _consolidate(grid, fg, min_cells):
 
 def process(img, grid_w=110, k=6, remove_bg=True, bg_thresh=235,
             flatten=1, despeckle=True, edge_trim=1, autocrop=True,
-            saturation=1.2, min_area=20):
+            saturation=1.2, min_area=20, detail=False, max_colors=24, merge_delta=10):
     """
     返回: grid_ids(h×w, 拼豆色号index, 背景=-1), used(色号index列表), counts(名->颗数)
+    detail=True：保细节模式（适合 AI 卡通/像素/logo 这类已经干净的图）——
+      逐格匹配保锐利，再按 ΔE 合并相近色压到 max_colors，不做 felzenszwalb/k-means 磨平。
     """
     img = img.convert("RGB")
     if autocrop and remove_bg:
@@ -239,27 +272,31 @@ def process(img, grid_w=110, k=6, remove_bg=True, bg_thresh=235,
           else np.ones((grid_h, grid_w), bool))
     if remove_bg and edge_trim > 0:
         fg = _erode(fg, edge_trim)
-
-    # 颜色用「拍平后」算（去 3D 阴影/纹理 → 平面色块）
-    flat = _flatten(img, flatten)
-    arr = np.asarray(flat.resize((grid_w, grid_h), Image.LANCZOS)).astype(np.float64)
-
-    lab = skcolor.rgb2lab(arr / 255.0).reshape(-1, 3)
     fg_flat = fg.reshape(-1)
-    n_fg = int(fg_flat.sum())
-    if n_fg == 0:
-        fg = np.ones((grid_h, grid_w), bool); fg_flat = fg.reshape(-1); n_fg = fg_flat.sum()
-    km = KMeans(n_clusters=min(k, n_fg), n_init=4, random_state=0)
-    cl = km.fit_predict(lab[fg_flat])
-    labels = np.full(grid_w * grid_h, -1)
-    labels[fg_flat] = cl
-    centers_rgb = skcolor.lab2rgb(km.cluster_centers_.reshape(-1, 1, 3)).reshape(-1, 3) * 255
-    cluster_to_bead = [_nearest_bead(c) for c in centers_rgb]
+    if int(fg_flat.sum()) == 0:
+        fg = np.ones((grid_h, grid_w), bool); fg_flat = fg.reshape(-1)
 
-    grid = np.full((grid_h, grid_w), -1)
-    for i, lb in enumerate(labels):
-        if lb >= 0:
-            grid[i // grid_w, i % grid_w] = cluster_to_bead[lb]
+    if detail:
+        # 保细节：逐格匹配（不拍平、不 k-means）→ ΔE 合并相近色
+        grid = _nearest_all(small_orig)
+        grid[~fg] = -1
+        grid = _merge_similar(grid, fg, delta=merge_delta, target=max_colors)
+    else:
+        # 去噪模式：拍平 + 全局 k-means 减色（适合嘈杂照片）
+        flat = _flatten(img, flatten)
+        arr = np.asarray(flat.resize((grid_w, grid_h), Image.LANCZOS)).astype(np.float64)
+        lab = skcolor.rgb2lab(arr / 255.0).reshape(-1, 3)
+        n_fg = int(fg_flat.sum())
+        km = KMeans(n_clusters=min(k, n_fg), n_init=4, random_state=0)
+        cl = km.fit_predict(lab[fg_flat])
+        labels = np.full(grid_w * grid_h, -1)
+        labels[fg_flat] = cl
+        centers_rgb = skcolor.lab2rgb(km.cluster_centers_.reshape(-1, 1, 3)).reshape(-1, 3) * 255
+        cluster_to_bead = [_nearest_bead(c) for c in centers_rgb]
+        grid = np.full((grid_h, grid_w), -1)
+        for i, lb in enumerate(labels):
+            if lb >= 0:
+                grid[i // grid_w, i % grid_w] = cluster_to_bead[lb]
 
     if despeckle:
         grid = _despeckle(grid, fg)

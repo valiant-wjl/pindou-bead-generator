@@ -21,7 +21,7 @@
 
 **卡通 / 像素 / logo 直接转**（这类干净输入不需要 AI）
 
-![emoji](docs/showcase_emoji.png)
+![cartoon](docs/showcase_cartoon.png)
 
 ## 目录结构
 ```

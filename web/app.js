@@ -239,6 +239,21 @@ const save = (cv, name) => { const a = document.createElement('a');
 $('#dlPreview').onclick = () => state.preview && save(state.preview, '拼豆成品预览.png');
 $('#dlGuide').onclick = () => state.guide && save(state.guide, '拼豆色号指导图.png');
 $('#dlList').onclick = () => state.res && save(legendCanvas(), '拼豆配料清单.png');
+$('#printBtn').onclick = () => {
+  if (!state.res) return;
+  const guideUrl = state.guide.toDataURL('image/png');
+  const listUrl = legendCanvas().toDataURL('image/png');
+  const w = window.open('', '_blank');
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>拼豆图纸</title>
+    <style>@page{margin:10mm}body{font-family:sans-serif;text-align:center;margin:0;padding:10px}
+    h2{font-size:16px}img{max-width:100%;page-break-inside:avoid}
+    .p{page-break-after:always}</style></head><body>
+    <div class="p"><h2>色号指导图（照此放豆）</h2><img src="${guideUrl}"></div>
+    <div><h2>配料清单（按色号买豆）</h2><img src="${listUrl}"></div>
+    <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script>
+    </body></html>`);
+  w.document.close();
+};
 
 // ---------- 打赏 ----------
 $('#tipBtn').onclick = () => $('#tipModal').hidden = false;

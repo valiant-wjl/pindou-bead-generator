@@ -59,6 +59,8 @@ details{margin:8px 0;font-size:13px}summary{cursor:pointer;color:var(--muted)}
 .legend .item{display:flex;align-items:center;gap:8px;font-size:13px}
 .legend .sw{width:26px;height:26px;border-radius:6px;border:1px solid #0002;
   display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.legend .item .xbtn{margin-left:auto;border:0;background:none;color:#c9b8a8;cursor:pointer;font-size:13px;padding:2px 4px}
+.legend .item .xbtn:hover{color:#e0533a}
 
 .modal{position:fixed;inset:0;background:#0007;display:flex;align-items:center;justify-content:center;z-index:50}
 .modal-card{background:#fff;border-radius:18px;padding:26px;max-width:340px;text-align:center;position:relative}

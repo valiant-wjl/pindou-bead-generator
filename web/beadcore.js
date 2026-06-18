@@ -21,9 +21,13 @@ function rgb2lab(r, g, b) {
 const PAL_RGB = NAMES.map(n => PALETTE[n]);
 const PAL_LAB = PAL_RGB.map(c => rgb2lab(c[0], c[1], c[2]));
 
-function nearestBead(lab) {
-  let best = 0, bd = Infinity;
-  for (let i = 0; i < PAL_LAB.length; i++) {
+// active: 可选，限定只在这些色板下标里找（用于排除颜色 / 只用手里有的色）
+function nearestBead(lab, active) {
+  let best = active ? active[0] : 0, bd = Infinity;
+  const idxs = active || null;
+  const n = idxs ? idxs.length : PAL_LAB.length;
+  for (let k = 0; k < n; k++) {
+    const i = idxs ? idxs[k] : k;
     const p = PAL_LAB[i];
     const d = (lab[0] - p[0]) ** 2 + (lab[1] - p[1]) ** 2 + (lab[2] - p[2]) ** 2;
     if (d < bd) { bd = d; best = i; }
@@ -199,8 +203,11 @@ function autocropCanvas(srcCanvas, thresh) {
 export function process(srcCanvas, opts = {}) {
   const o = Object.assign({
     gridW: 100, maxColors: 20, removeBg: true, bgThresh: 235,
-    autocrop: true, minArea: 10, mergeDelta: 8, saturation: 1.15,
+    autocrop: true, minArea: 10, mergeDelta: 8, saturation: 1.15, excluded: [],
   }, opts);
+  const exSet = new Set(o.excluded);
+  const active = [];
+  for (let i = 0; i < PAL_LAB.length; i++) if (!exSet.has(i)) active.push(i);
 
   let canvas = srcCanvas;
   if (o.autocrop && o.removeBg) canvas = autocropCanvas(canvas, o.bgThresh);
@@ -225,7 +232,7 @@ export function process(srcCanvas, opts = {}) {
   for (let i = 0; i < cells.length; i++) {
     if (bg[i]) { grid[i] = -1; continue; }
     const c = cells[i];
-    grid[i] = nearestBead(rgb2lab(c.r, c.g, c.b));
+    grid[i] = nearestBead(rgb2lab(c.r, c.g, c.b), active);
   }
   grid = mergeSimilar(grid, o.maxColors, o.mergeDelta);
   grid = despeckle(grid, gw, gh);

@@ -2,7 +2,7 @@ import { process, beadName, beadRGB } from './beadcore.js';
 import { renderPreview, renderGuide } from './render.js';
 
 const $ = s => document.querySelector(s);
-const state = { srcCanvas: null, aiCanvas: null, preview: null, guide: null, bead2num: {}, res: null, view: 'preview' };
+const state = { srcCanvas: null, aiCanvas: null, preview: null, guide: null, bead2num: {}, res: null, view: 'preview', excluded: new Set() };
 
 // ---------- 上传 ----------
 function loadFile(file) {
@@ -87,7 +87,7 @@ async function generate() {
     const res = process(bead, {
       gridW: +$('#gridW').value, maxColors: +$('#maxColors').value,
       saturation: +$('#sat').value, minArea: +$('#minArea').value,
-      removeBg: $('#removeBg').checked,
+      removeBg: $('#removeBg').checked, excluded: [...state.excluded],
     });
     state.res = res;
     state.preview = renderPreview(res, 12);
@@ -120,13 +120,28 @@ function buildLegend() {
   const res = state.res, leg = $('#legend'); leg.innerHTML = '';
   const total = Object.values(res.counts).reduce((a, b) => a + b, 0);
   $('#sumTxt').textContent = `· 共 ${total} 颗 · ${res.used.length} 种色`;
-  res.used.forEach(b => {
-    const c = beadRGB(b), num = state.bead2num[b];
+  const swHTML = b => { const c = beadRGB(b);
     const tc = (c[0] + c[1] + c[2]) > 360 ? '#000' : '#fff';
+    return `background:rgb(${c[0]|0},${c[1]|0},${c[2]|0});color:${tc}`; };
+  res.used.forEach(b => {
     const d = document.createElement('div'); d.className = 'item';
-    d.innerHTML = `<span class="sw" style="background:rgb(${c[0]|0},${c[1]|0},${c[2]|0});color:${tc}">${num}</span>
-      <span>${beadName(b)} × ${res.counts[b]}</span>`;
-    leg.appendChild(d);
+    const sw = document.createElement('span'); sw.className = 'sw';
+    sw.style.cssText = swHTML(b); sw.textContent = state.bead2num[b];
+    const lbl = document.createElement('span'); lbl.textContent = `${beadName(b)} × ${res.counts[b]}`;
+    const x = document.createElement('button'); x.className = 'xbtn'; x.textContent = '✕';
+    x.title = '排除这个颜色'; x.onclick = () => { state.excluded.add(b); generate(); };
+    d.append(sw, lbl, x); leg.appendChild(d);
+  });
+  // 已排除区
+  const ex = $('#excluded'); ex.innerHTML = '';
+  $('#excludedWrap').hidden = state.excluded.size === 0;
+  [...state.excluded].forEach(b => {
+    const d = document.createElement('div'); d.className = 'item';
+    const sw = document.createElement('span'); sw.className = 'sw'; sw.style.cssText = swHTML(b); sw.textContent = '✕';
+    const lbl = document.createElement('span'); lbl.textContent = beadName(b) + ' （恢复）';
+    d.append(sw, lbl); d.style.cursor = 'pointer'; d.style.opacity = '.6';
+    d.onclick = () => { state.excluded.delete(b); generate(); };
+    ex.appendChild(d);
   });
 }
 

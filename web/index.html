@@ -68,7 +68,12 @@
         <button id="dlList">⬇️ 配料清单</button>
       </div>
       <h4>配料清单 <span id="sumTxt" class="muted"></span></h4>
+      <p class="muted tiny">💡 点颜色右侧 ✕ 可排除「你没有的色号」，自动重映射到最近的可用色。</p>
       <div class="legend" id="legend"></div>
+      <div id="excludedWrap" hidden>
+        <h4>已排除的颜色 <span class="muted tiny">（点击恢复）</span></h4>
+        <div class="legend" id="excluded"></div>
+      </div>
     </div>
   </div>
 </main>

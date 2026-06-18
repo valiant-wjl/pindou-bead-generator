@@ -342,20 +342,26 @@ def render(grid, used, cell=22, show_grid=True, show_ids=True):
     return canvas, bead_to_num
 
 
-def render_preview(grid, cell=16, bg=(245, 243, 237)):
-    """成品效果预览：用圆豆子渲染（无数字、无网格），一眼看出像不像那个物品。"""
+def render_preview(grid, cell=16, bg=(255, 255, 255), style="round"):
+    """成品效果预览（无数字、无网格）。
+    style='round' 紧凑圆豆（缝隙极小+白底，锐利鲜亮）；'solid' 实心像素方块。
+    旧版圆豆缝隙大+米色底，大片纯色会显得发淡发糊——这里默认改成紧凑白底。"""
     h, w = grid.shape
     img = Image.new("RGB", (w * cell, h * cell), bg)
     d = ImageDraw.Draw(img)
-    pad = max(1, cell * 0.10)
+    pad = max(0, cell * 0.04)
     for y in range(h):
         for x in range(w):
             b = grid[y, x]
             if b < 0:
                 continue
-            d.ellipse([x * cell + pad, y * cell + pad,
-                       (x + 1) * cell - pad, (y + 1) * cell - pad],
-                      fill=PALETTE[NAMES[b]])
+            col = PALETTE[NAMES[b]]
+            if style == "solid":
+                d.rectangle([x * cell, y * cell, x * cell + cell - 1, y * cell + cell - 1],
+                            fill=col)
+            else:
+                d.ellipse([x * cell + pad, y * cell + pad,
+                           (x + 1) * cell - pad, (y + 1) * cell - pad], fill=col)
     return img
 
 

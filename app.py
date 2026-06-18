@@ -56,19 +56,20 @@ with st.sidebar:
     st.subheader("③ 拼豆参数")
     grid_w = st.slider("网格宽度（格子数）", 20, 180, 100, step=1,
                        help="对应拼豆板大小。越大越清晰、小特征(如logo)越能保住，但越费豆。")
-    k = st.slider("颜色数量（k）", 2, 24, 6, step=1,
-                  help="整图压成几种色。照片调小(4~6)最干净。")
-    flatten = st.select_slider("二维化强度（去 3D/纹理）", options=[0, 1, 2, 3], value=1,
-                               help="分割拍平阴影/高光/纹理。1=推荐；调太大会糊掉小字/logo。")
-    saturation = st.slider("鲜艳度增强", 1.0, 1.8, 1.2, step=0.1,
-                           help="把柔和/阴影色推向本色，减少误配成杂色（如暗黄→橄榄绿）。")
-    min_area = st.slider("最小色块（颗）", 0, 80, 20, step=5,
-                         help="用量少于此数的杂色并入邻色。越大色号越少越好拼，但小细节会被吞。")
-    detail = st.checkbox("保细节模式（卡通 / AI输出 / 像素图）", value=use_ai,
-                         help="已经干净的图用这个：逐格匹配保锐利 + 合并相近色，比去噪模式不糊。"
-                              "AI 卡通化默认走它；嘈杂照片才关掉用去噪。")
-    max_colors = st.slider("保细节·最大色数", 8, 40, 20, step=1, disabled=not detail,
-                           help="保细节模式下把相近色合并到这个数以内，越小越好拼。")
+    detail = st.checkbox("保细节模式（推荐，默认开）", value=True,
+                         help="卡通 / AI输出 / 像素 / logo 都用这个：逐格匹配保锐利 + 合并相近色，"
+                              "锐利且色少。只有「嘈杂照片且不开 AI」时才关掉换去噪模式。")
+    max_colors = st.slider("最大色数", 8, 40, 20, step=1, disabled=not detail,
+                           help="保细节模式下把相近色合并到这个数以内。15~24 效果好又好拼。")
+    saturation = st.slider("鲜艳度增强", 1.0, 1.8, 1.15, step=0.05,
+                           help="把柔和/阴影色推向本色，减少误配成杂色。")
+    min_area = st.slider("最小色块（颗）", 0, 80, 10, step=2,
+                         help="用量少于此数的杂色并入邻色。越大色号越少，但小细节会被吞。")
+    with st.expander("去噪模式参数（仅嘈杂照片不开AI时用）"):
+        k = st.slider("颜色数量（k）", 2, 24, 8, step=1,
+                      help="去噪模式：整图压成几种色。")
+        flatten = st.select_slider("二维化强度（去 3D/纹理）", options=[0, 1, 2, 3], value=1,
+                                   help="去噪模式：分割拍平阴影/高光/纹理。")
     st.divider()
     remove_bg = st.checkbox("剥离白色背景", value=True)
     autocrop = st.checkbox("自动裁剪到主体（强烈建议）", value=True,

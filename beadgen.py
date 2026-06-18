@@ -250,9 +250,9 @@ def _consolidate(grid, fg, min_cells):
     return out
 
 
-def process(img, grid_w=110, k=6, remove_bg=True, bg_thresh=235,
+def process(img, grid_w=110, k=8, remove_bg=True, bg_thresh=235,
             flatten=1, despeckle=True, edge_trim=1, autocrop=True,
-            saturation=1.2, min_area=20, detail=False, max_colors=24, merge_delta=10):
+            saturation=1.15, min_area=10, detail=True, max_colors=20, merge_delta=8):
     """
     返回: grid_ids(h×w, 拼豆色号index, 背景=-1), used(色号index列表), counts(名->颗数)
     detail=True：保细节模式（适合 AI 卡通/像素/logo 这类已经干净的图）——

@@ -9,6 +9,20 @@
 - **真实色卡**：内置 MARD 221 标准色卡（国内五大品牌通用 A/B/C 色号），可切换。
 - **可打印 PDF**：第 1 页带编号指导图，第 2 页配料图例（色号 + 颗数）。
 
+## 效果展示
+
+**宠物照片 → AI 卡通化 → 拼豆成品**（毛茸茸的照片直接转会糊，先重画成卡通就清晰可拼）
+
+![dog](docs/showcase_dog.png)
+
+**vs 现成的逐格量化工具**：同图同色卡，本工具色号少一截、画面更干净（更好买豆、更好拼）
+
+![compare](docs/showcase_compare.png)
+
+**卡通 / 像素 / logo 直接转**（这类干净输入不需要 AI）
+
+![emoji](docs/showcase_emoji.png)
+
 ## 目录结构
 ```
 beadgen.py        核心算法（缩放→去背景→全局k-means减色→分割拍平→去杂点→渲染→PDF）
@@ -26,12 +40,19 @@ pip install -r requirements.txt
 streamlit run app.py            # 打开 http://localhost:8501
 ```
 
-## AI 卡通化（可选，需自备 API key）
-1. 复制 `.env.example` 为 `.env`，填入你自己的 OpenRouter API key。
-2. 网页里勾选「AI 卡通化」即可（约 $0.04/张，按图缓存）。
+## AI 卡通化（可选，需自备图生图 API key）
+1. 复制 `.env.example` 为 `.env`，填入你自己的 key。
+2. 网页里勾选「AI 卡通化」即可（按图缓存，拖参数不重复扣费）。
 3. 不填 key、不勾选，也能正常使用（适合卡通/像素图/logo 这类干净输入）。
 
-> 模型：OpenRouter `bytedance-seed/seedream-4.5`（图生图）。可在 `redraw.py` 改成其它图生图模型。
+支持两个图生图后端，用 `REDRAW_BACKEND` 切换：
+
+| 后端 | `REDRAW_BACKEND` | key 变量 | 默认模型 |
+|---|---|---|---|
+| OpenRouter（默认） | `openrouter` | `OPENROUTER_API_KEY` | `bytedance-seed/seedream-4.5` |
+| 火山方舟 Ark | `volcano` | `ARK_API_KEY` | `doubao-seedream-4-0-*`（可 `REDRAW_MODEL` 改成 seedream 5.0 lite 等） |
+
+> 火山方舟文档：<https://www.volcengine.com/docs/82379/1541523>。切模型只需设 `REDRAW_MODEL` 为控制台给的完整模型 ID。
 
 ## 算法管线
 图片 →（可选 AI 卡通化）→ 自动裁剪到主体 → 等比缩放到网格 → 剥离背景 →

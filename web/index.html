@@ -59,6 +59,11 @@
         <button class="tab active" data-v="preview">成品预览</button>
         <button class="tab" data-v="guide">色号指导图</button>
         <button class="tab" data-v="src">原图</button>
+        <button class="tab edit-toggle" id="editToggle">✏️ 手动精修</button>
+      </div>
+      <div class="brushbar" id="brushbar" hidden>
+        <span class="muted tiny">画笔：</span><span id="brushes"></span>
+        <button class="brush eraser" id="eraser" title="橡皮(擦成背景)">🧽</button>
       </div>
       <div class="stage" id="stage"><canvas id="cv"></canvas></div>
       <div class="meta" id="meta"></div>

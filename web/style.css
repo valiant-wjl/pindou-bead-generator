@@ -47,8 +47,16 @@ details{margin:8px 0;font-size:13px}summary{cursor:pointer;color:var(--muted)}
 .tabs{display:flex;gap:8px;margin-bottom:14px}
 .tab{flex:1;padding:9px;border:1px solid var(--line);background:#fbf7f0;border-radius:10px;cursor:pointer;font-weight:600;color:#7a7068}
 .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.edit-toggle{flex:0 0 auto!important}
+.edit-toggle.on{background:#5aa469!important;border-color:#5aa469!important;color:#fff}
+.brushbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 10px;padding:8px;
+  background:#fbf7f0;border:1px solid var(--line);border-radius:10px}
+.brush{width:24px;height:24px;border-radius:6px;border:2px solid #0001;cursor:pointer;padding:0}
+.brush.sel{border-color:#5aa469;box-shadow:0 0 0 2px #5aa46955}
+.brush.eraser{background:#fff;font-size:13px}
 .stage{display:flex;justify-content:center;align-items:center;background:#f4efe6;border-radius:12px;
   min-height:300px;padding:14px;overflow:auto}
+.stage.editing canvas{cursor:crosshair}
 .stage canvas,.stage img{max-width:100%;max-height:70vh;image-rendering:pixelated;border-radius:6px}
 .meta{text-align:center;color:var(--muted);font-size:13px;margin:10px 0}
 .dl{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 16px}

@@ -2,7 +2,7 @@ import { process, beadName, beadRGB } from './beadcore.js';
 import { renderPreview, renderGuide } from './render.js';
 
 const $ = s => document.querySelector(s);
-const state = { srcCanvas: null, aiCanvas: null, preview: null, guide: null, bead2num: {}, res: null, view: 'preview', excluded: new Set() };
+const state = { srcCanvas: null, aiCanvas: null, preview: null, guide: null, bead2num: {}, res: null, view: 'preview', excluded: new Set(), editing: false, brush: null, curCell: 12 };
 
 // ---------- 上传 ----------
 function loadFile(file) {
@@ -92,7 +92,7 @@ async function generate() {
     state.res = res;
     state.preview = renderPreview(res, 12);
     const g = renderGuide(res, 22); state.guide = g.canvas; state.bead2num = g.bead2num;
-    paint(); buildLegend(); status.textContent = '';
+    paint(); buildLegend(); buildBrushes(); status.textContent = '';
   } catch (e) {
     status.textContent = '❌ ' + e.message;
   } finally { $('#genBtn').disabled = false; }
@@ -107,13 +107,78 @@ function paint() {
   else if (state.view === 'guide') el = state.guide;
   else el = state.srcCanvas && (state.aiCanvas || state.srcCanvas);
   if (el) stage.appendChild(el);
+  state.curCell = state.view === 'guide' ? 22 : state.view === 'preview' ? 12 : 0;
   const res = state.res;
   if (res) $('#meta').textContent = `网格 ${res.gw}×${res.gh} · ${res.used.length} 种色 · 共 ${Object.values(res.counts).reduce((a, b) => a + b, 0)} 颗`;
 }
-document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
-  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+document.querySelectorAll('.tab[data-v]').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab[data-v]').forEach(x => x.classList.remove('active'));
   t.classList.add('active'); state.view = t.dataset.v; paint();
 });
+
+// ---------- 手动精修 ----------
+function buildBrushes() {
+  const wrap = $('#brushes'); wrap.innerHTML = '';
+  (state.res?.used || []).forEach(b => {
+    const c = beadRGB(b);
+    const btn = document.createElement('button'); btn.className = 'brush';
+    btn.style.background = `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+    btn.title = beadName(b);
+    if (state.brush === b) btn.classList.add('sel');
+    btn.onclick = () => { state.brush = b; markBrush(); };
+    wrap.appendChild(btn);
+  });
+  markBrush();
+}
+function markBrush() {
+  document.querySelectorAll('#brushes .brush').forEach((el, i) => {
+    el.classList.toggle('sel', state.res.used[i] === state.brush);
+  });
+  $('#eraser').classList.toggle('sel', state.brush === -1);
+}
+$('#eraser').onclick = () => { state.brush = -1; markBrush(); };
+$('#editToggle').onclick = () => {
+  if (!state.res) return;
+  state.editing = !state.editing;
+  $('#editToggle').classList.toggle('on', state.editing);
+  $('#brushbar').hidden = !state.editing;
+  $('#stage').classList.toggle('editing', state.editing);
+  if (state.editing) {
+    if (state.brush === null) state.brush = state.res.used[0];
+    if (state.view === 'src') { state.view = 'guide';
+      document.querySelectorAll('.tab[data-v]').forEach(x => x.classList.toggle('active', x.dataset.v === 'guide')); paint(); }
+    buildBrushes();
+  }
+};
+// 点格子上色
+function paintCell(e) {
+  if (!state.editing || !state.curCell || state.brush === null) return;
+  const cv = state.view === 'guide' ? state.guide : state.preview;
+  if (!cv) return;
+  const rect = cv.getBoundingClientRect();
+  const cx = Math.floor((e.clientX - rect.left) * (cv.width / rect.width) / state.curCell);
+  const cy = Math.floor((e.clientY - rect.top) * (cv.height / rect.height) / state.curCell);
+  const { gw, gh, grid } = state.res;
+  if (cx < 0 || cy < 0 || cx >= gw || cy >= gh) return;
+  const idx = cy * gw + cx;
+  if (grid[idx] === state.brush) return;
+  grid[idx] = state.brush;
+  refreshAfterEdit();
+}
+let painting = false;
+$('#stage').addEventListener('pointerdown', e => { if (state.editing) { painting = true; paintCell(e); } });
+$('#stage').addEventListener('pointermove', e => { if (painting) paintCell(e); });
+window.addEventListener('pointerup', () => painting = false);
+
+function refreshAfterEdit() {
+  const res = state.res;
+  res.counts = {};
+  for (const v of res.grid) if (v >= 0) res.counts[v] = (res.counts[v] || 0) + 1;
+  res.used = Object.keys(res.counts).map(Number).sort((a, b) => res.counts[b] - res.counts[a]);
+  state.preview = renderPreview(res, 12);
+  const g = renderGuide(res, 22); state.guide = g.canvas; state.bead2num = g.bead2num;
+  paint(); buildLegend(); buildBrushes();
+}
 
 // ---------- 配料清单 ----------
 function buildLegend() {

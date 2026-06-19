@@ -26,6 +26,13 @@ main{max-width:1100px;margin:0 auto;padding:26px 18px 70px}
 .beadrow{text-align:center;margin:0 0 22px;font-size:0}
 .beadrow i{display:inline-block;width:16px;height:16px;border:3px solid var(--ink);margin:0 3px;vertical-align:middle}
 
+.gallery{text-align:center;margin:18px 0 4px}
+.gtitle{font-weight:800;font-size:14px}
+.gitems{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.gitems img{width:58px;height:58px;border:3px solid var(--ink);background:#fff;cursor:pointer;padding:6px;
+  box-shadow:3px 3px 0 var(--ink);transition:.08s}
+.gitems img:hover{background:#fff8ea}
+.gitems img:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
 .uploader{background:var(--card);border:3px dashed var(--ink);padding:46px 20px;text-align:center;transition:.15s}
 .uploader.drag{background:#fff8ea;border-style:solid}
 .up-icon{font-size:48px}

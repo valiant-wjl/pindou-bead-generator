@@ -31,6 +31,11 @@
     </div>
   </section>
 
+  <section class="gallery">
+    <span class="gtitle">🔥 没灵感？点一个直接拼 👇</span>
+    <div class="gitems" id="gallery"></div>
+  </section>
+
   <div class="layout" id="workspace" hidden>
     <aside class="panel">
       <h3>① AI 转绘 <span class="muted">（真实照片→可拼卡通）</span></h3>
@@ -94,7 +99,15 @@
         <button id="dlGuide">⬇️ 色号指导图</button>
         <button id="dlList">⬇️ 配料清单</button>
         <button id="printBtn">🖨️ 打印 / 存PDF</button>
+        <button id="shareBtn">📸 晒图卡</button>
+        <button id="tileBtn">🧩 大图分块</button>
       </div>
+      <label class="row" style="margin:0 0 12px;font-weight:700">拼豆板大小（分块用）
+        <select id="boardSize" style="margin-top:4px">
+          <option value="14">14×14（迷你板）</option>
+          <option value="29" selected>29×29（标准方板）</option>
+          <option value="57">57×57（大板）</option>
+        </select></label>
       <h4>配料清单 <span id="sumTxt" class="muted"></span></h4>
       <p class="muted tiny">💡 点颜色右侧 ✕ 可排除「你没有的色号」，自动重映射到最近的可用色。</p>
       <div class="legend" id="legend"></div>

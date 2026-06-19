@@ -77,7 +77,7 @@ streamlit run app.py            # 打开 http://localhost:8501
 ## 致谢 / 来源
 - 色卡：MARD 221 标准色卡（国内五大品牌通用 A/B/C 色号体系，公开标准）。
 - 思路参考了开源项目 [Zippland/perler-beads](https://github.com/Zippland/perler-beads)（七卡瓦），本项目算法为独立实现。
-- 示例图 `examples/dog_emoji.png` 来自 [OpenMoji](https://openmoji.org)（CC BY-SA 4.0）。
+- 示例图与新手灵感库图标来自 [OpenMoji](https://openmoji.org)（CC BY-SA 4.0）。
 
 ## License
 MIT，见 [LICENSE](LICENSE)。

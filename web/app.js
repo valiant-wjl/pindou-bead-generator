@@ -27,23 +27,46 @@ initAnalytics(); track('pageview');
 const aiActive = () => CONFIG.aiMode !== 'disabled' && $('#useAI') && $('#useAI').checked;
 
 // ---------- 上传 ----------
+function setSource(img, ev) {
+  const cap = 1400, sc = Math.min(1, cap / Math.max(img.width, img.height));
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);   // 白底，兼容透明图
+  ctx.drawImage(img, 0, 0, cv.width, cv.height);
+  state.srcCanvas = cv; state.aiCanvas = null;
+  $('#workspace').hidden = false;
+  $('#workspace').scrollIntoView({ behavior: 'smooth' });
+  track(ev || 'upload');
+  generate();
+}
 function loadFile(file) {
   const img = new Image();
-  img.onload = () => {
-    const cap = 1400, sc = Math.min(1, cap / Math.max(img.width, img.height));
-    const cv = document.createElement('canvas');
-    cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
-    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
-    state.srcCanvas = cv; state.aiCanvas = null;
-    $('#workspace').hidden = false;
-    $('#workspace').scrollIntoView({ behavior: 'smooth' });
-    track('upload');
-    generate();
-  };
+  img.onload = () => setSource(img, 'upload');
   img.src = URL.createObjectURL(file);
+}
+function loadFromUrl(url, ev) {
+  const img = new Image();
+  img.onload = () => setSource(img, ev || 'gallery');
+  img.src = url;
 }
 $('#pickBtn').onclick = () => $('#file').click();
 $('#file').onchange = e => e.target.files[0] && loadFile(e.target.files[0]);
+
+// 新手灵感库
+const GALLERY = [
+  ['1F353', '草莓'], ['1F344', '蘑菇'], ['2764', '爱心'], ['2B50', '星星'],
+  ['1F431', '猫'], ['1F33C', '小花'], ['1F47B', '幽灵'], ['1F308', '彩虹'],
+  ['1F351', '桃子'], ['1F995', '恐龙'],
+];
+(function buildGallery() {
+  const wrap = $('#gallery');
+  GALLERY.forEach(([code, name]) => {
+    const im = new Image(); im.src = `./assets/gallery/${code}.png`; im.alt = name; im.title = name;
+    im.onclick = () => { track('gallery_pick', { name }); loadFromUrl(im.src, 'gallery'); };
+    wrap.appendChild(im);
+  });
+})();
 const drop = $('#drop');
 ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
 ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
@@ -277,6 +300,75 @@ $('#printBtn').onclick = () => {
     <div><h2>配料清单（按色号买豆）</h2><img src="${listUrl}"></div>
     <script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script>
     </body></html>`);
+  w.document.close();
+};
+
+// ---------- 晒图卡（小红书友好，带水印）----------
+function shareCardCanvas() {
+  const prev = state.preview, res = state.res;
+  const W = 760, pad = 44, headH = 116, footH = 84;
+  const pw = W - 2 * pad, ph = Math.round(prev.height * (pw / prev.width));
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = headH + ph + footH;
+  const x = cv.getContext('2d');
+  x.fillStyle = '#ffd000'; x.fillRect(0, 0, W, cv.height);
+  x.fillStyle = '#1c1a26'; x.textAlign = 'center';
+  x.font = '900 34px -apple-system,sans-serif';
+  x.fillText('我用豆豆铺拼的！🧩', W / 2, 54);
+  const total = Object.values(res.counts).reduce((a, b) => a + b, 0);
+  x.font = '700 18px -apple-system,sans-serif';
+  x.fillText(`${res.gw}×${res.gh} 格 · ${res.used.length} 种色 · ${total} 颗`, W / 2, 88);
+  x.fillStyle = '#fff'; x.fillRect(pad - 6, headH - 6, pw + 12, ph + 12);
+  x.drawImage(prev, pad, headH, pw, ph);
+  x.strokeStyle = '#1c1a26'; x.lineWidth = 5; x.strokeRect(pad - 6, headH - 6, pw + 12, ph + 12);
+  x.fillStyle = '#1c1a26'; x.font = '900 23px -apple-system,sans-serif';
+  x.fillText('豆豆铺 BEADGO · 拍张照，一键变拼豆', W / 2, headH + ph + 48);
+  return cv;
+}
+$('#shareBtn').onclick = () => { if (state.res) { track('share_card'); save(shareCardCanvas(), '豆豆铺晒图卡.png'); } };
+
+// ---------- 大图分块（按拼豆板尺寸切片，逐块打印拼接）----------
+function renderTile(x0, y0, B, cell) {
+  const { grid, gw, gh } = state.res;
+  const w = Math.min(B, gw - x0), h = Math.min(B, gh - y0);
+  const cv = document.createElement('canvas'); cv.width = w * cell + 1; cv.height = h * cell + 1;
+  const x = cv.getContext('2d');
+  x.fillStyle = '#fff'; x.fillRect(0, 0, cv.width, cv.height);
+  x.font = `${(cell * 0.5) | 0}px Arial`; x.textAlign = 'center'; x.textBaseline = 'middle';
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    const b = grid[(y0 + j) * gw + (x0 + i)];
+    const px = i * cell, py = j * cell;
+    if (b >= 0) {
+      const c = beadRGB(b);
+      x.fillStyle = `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`; x.fillRect(px, py, cell, cell);
+      x.fillStyle = (c[0] + c[1] + c[2]) > 360 ? '#000' : '#fff';
+      x.fillText(String(state.bead2num[b]), px + cell / 2, py + cell / 2 + 1);
+    }
+    x.strokeStyle = '#ccc'; x.lineWidth = 1; x.strokeRect(px + .5, py + .5, cell, cell);
+  }
+  // 每 5 格加粗线，便于数格
+  x.strokeStyle = '#1c1a26'; x.lineWidth = 2;
+  for (let i = 0; i <= w; i += 5) { x.beginPath(); x.moveTo(i * cell + .5, 0); x.lineTo(i * cell + .5, h * cell); x.stroke(); }
+  for (let j = 0; j <= h; j += 5) { x.beginPath(); x.moveTo(0, j * cell + .5); x.lineTo(w * cell, j * cell + .5); x.stroke(); }
+  return cv;
+}
+$('#tileBtn').onclick = () => {
+  if (!state.res) return;
+  const B = +$('#boardSize').value;
+  const { gw, gh } = state.res;
+  const cols = Math.ceil(gw / B), rows = Math.ceil(gh / B);
+  track('tile_print', { board: B, tiles: cols * rows });
+  const overview = state.preview.toDataURL('image/png');
+  let pages = `<div class="p"><h2>总览（共 ${cols}×${rows}=${cols * rows} 块 · 每块 ${B}×${B}）</h2>
+    <img src="${overview}" style="max-width:80%"><p>按「行R-列C」顺序拼，拼完拼接起来即可。</p></div>`;
+  for (let ry = 0; ry < rows; ry++) for (let cx = 0; cx < cols; cx++) {
+    const url = renderTile(cx * B, ry * B, B, 30).toDataURL('image/png');
+    pages += `<div class="p"><h2>第 ${ry + 1} 行 · 第 ${cx + 1} 列</h2><img src="${url}"></div>`;
+  }
+  const w = window.open('', '_blank');
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>大图分块图纸</title>
+    <style>@page{margin:8mm}body{font-family:sans-serif;text-align:center;margin:0}
+    h2{font-size:15px;margin:6px}img{max-width:100%;page-break-inside:avoid}.p{page-break-after:always}</style>
+    ${pages}<script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script>`);
   w.document.close();
 };
 

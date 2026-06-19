@@ -23,6 +23,11 @@
 
 ![cartoon](docs/showcase_cartoon.png)
 
+## 配置（web/config.js）
+- `aiMode`: `'byok'` 访客填自己 key（开源推荐，零成本）/ `'disabled'` 关 AI 只展示 demo + 收集兴趣（商业试水 v1）/ `'enabled'` 用站点自带 key（会扣自己钱，需后端限流计费）。
+- `analytics`: 默认空=**全关，开源版无任何埋点**；商业部署填 `provider`(`baidu`/`51la`/`umami`/`custom`)+`id` 即开启 PV/事件统计。
+- 收款码放 `web/assets/tip.png`（已 gitignore，不会上传）。
+
 ## 两种形态
 - **纯前端版 `web/`（推荐部署）** — 零后端、纯静态、浏览器本地处理，秒开、国内好托管。拼豆转换全在浏览器跑；AI 卡通化由用户填自己的 key（或接后端代理）。直接把 `web/` 丢到任意静态托管（OSS/COS/Vercel/Pages）即可。本地预览：`cd web && python -m http.server 8530` → http://localhost:8530
 - **Streamlit 版 `app.py`** — Python 工作台，适合本地调参/做 AI 后端。

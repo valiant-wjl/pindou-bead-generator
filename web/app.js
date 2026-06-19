@@ -264,4 +264,4 @@ $('#tipModal').onclick = e => { if (e.target.id === 'tipModal') $('#tipModal').h
 // 若放了收款码图片 web/assets/tip.png 自动显示
 (() => { const im = new Image(); im.onload = () => { $('#qrSlot').innerHTML = ''; $('#qrSlot').appendChild(im); };
   im.src = './assets/tip.png'; })();
-$('#aboutLink').onclick = e => { e.preventDefault(); alert('拼豆喵：上传图片→拼豆图纸。图片在你浏览器本地处理不上传；AI 卡通化会调用 OpenRouter。开源 MIT。'); };
+$('#aboutLink').onclick = e => { e.preventDefault(); alert('豆豆铺 BEADGO：上传图片→拼豆图纸。图片在你浏览器本地处理不上传；AI 卡通化会调用 OpenRouter。开源 MIT。'); };

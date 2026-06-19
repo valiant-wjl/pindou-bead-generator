@@ -7,3 +7,4 @@ testimg/
 dev/
 .DS_Store
 streamlit.log
+web/assets/tip.png

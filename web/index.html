@@ -33,13 +33,23 @@
 
   <div class="layout" id="workspace" hidden>
     <aside class="panel">
-      <h3>① AI 卡通化 <span class="muted">（真实照片必开）</span></h3>
-      <label class="row"><input type="checkbox" id="useAI"> 照片 → 干净卡通贴纸</label>
-      <details id="aiBox"><summary>AI 设置 / 提示词</summary>
-        <input type="password" id="aiKey" placeholder="OpenRouter API Key（仅存本地浏览器）">
-        <textarea id="aiPrompt" rows="2" placeholder="留空=默认(宠物→可爱卡通贴纸)。可写：戴帽子的卡通柯基…"></textarea>
-        <p class="muted tiny">浏览器直连 OpenRouter（图生图 seedream）。约 $0.04/张。Key 只存在你本机。</p>
-      </details>
+      <h3>① AI 转绘 <span class="muted">（真实照片→可拼卡通）</span></h3>
+      <!-- byok 模式：访客填自己的 key -->
+      <div id="aiByok" hidden>
+        <label class="row"><input type="checkbox" id="useAI"> 照片 → 干净卡通贴纸</label>
+        <details id="aiBox"><summary>AI 设置 / 提示词</summary>
+          <input type="password" id="aiKey" placeholder="OpenRouter API Key（仅存本地浏览器）">
+          <textarea id="aiPrompt" rows="2" placeholder="留空=默认(宠物→可爱卡通贴纸)。可写：戴帽子的卡通柯基…"></textarea>
+          <p class="muted tiny">浏览器直连 OpenRouter（图生图）。约 $0.04/张。Key 只存你本机。</p>
+        </details>
+      </div>
+      <!-- disabled 模式：展示 demo + 收集兴趣 -->
+      <div id="aiDisabled" hidden>
+        <img id="aiDemoImg" alt="AI 转绘效果" style="width:100%;border:3px solid var(--ink)">
+        <p class="muted tiny" style="margin:8px 0">毛茸茸的真实照片 → 一键变成干净可拼的卡通（上图为效果）。这个功能还在打磨中 👀</p>
+        <button class="primary" id="interestBtn" style="margin-top:4px;padding:11px">✨ 想要这个功能？点我 +1</button>
+        <p class="muted tiny" id="interestCount" style="margin-top:6px"></p>
+      </div>
 
       <h3>② 色卡品牌 <span class="muted">（色号按你的盒子）</span></h3>
       <select id="brand">

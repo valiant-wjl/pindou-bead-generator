@@ -1,10 +1,30 @@
 import { process, beadName, beadRGB } from './beadcore.js';
 import { renderPreview, renderGuide } from './render.js';
+import { CONFIG } from './config.js';
+import { initAnalytics, track } from './analytics.js';
 
 const $ = s => document.querySelector(s);
 const state = { srcCanvas: null, aiCanvas: null, preview: null, guide: null, bead2num: {}, res: null, view: 'preview', excluded: new Set(), editing: false, brush: null, curCell: 12, brand: 'MARD' };
 $('#brand').onchange = () => { state.brand = $('#brand').value;
-  if (state.res) { buildLegend(); buildBrushes(); } };
+  if (state.res) { buildLegend(); buildBrushes(); track('change_brand', { brand: state.brand }); } };
+
+// ---------- 初始化：埋点 + AI 模式 ----------
+initAnalytics(); track('pageview');
+(function initAI() {
+  const mode = CONFIG.aiMode;
+  if (mode === 'byok' || mode === 'enabled') $('#aiByok').hidden = false;
+  else if (mode === 'disabled') {
+    $('#aiDisabled').hidden = false;
+    $('#aiDemoImg').src = CONFIG.aiDemo;
+    const KEY = 'beadgo_ai_interest';
+    const done = () => { $('#interestBtn').disabled = true;
+      $('#interestBtn').textContent = '已收到你的期待 🙌';
+      $('#interestCount').textContent = '感谢！攒够人气就开放 AI 转绘～'; };
+    $('#interestBtn').onclick = () => { track('interest_ai'); localStorage.setItem(KEY, '1'); done(); };
+    if (localStorage.getItem(KEY)) done();
+  }
+})();
+const aiActive = () => CONFIG.aiMode !== 'disabled' && $('#useAI') && $('#useAI').checked;
 
 // ---------- 上传 ----------
 function loadFile(file) {
@@ -17,6 +37,7 @@ function loadFile(file) {
     state.srcCanvas = cv; state.aiCanvas = null;
     $('#workspace').hidden = false;
     $('#workspace').scrollIntoView({ behavior: 'smooth' });
+    track('upload');
     generate();
   };
   img.src = URL.createObjectURL(file);
@@ -76,7 +97,7 @@ async function generate() {
   const status = $('#status');
   try {
     let bead = state.srcCanvas;
-    if ($('#useAI').checked) {
+    if (aiActive()) {
       if (!state.aiCanvas) {
         status.textContent = '🎨 AI 卡通化中（约 20 秒）…';
         $('#genBtn').disabled = true;
@@ -95,6 +116,7 @@ async function generate() {
     state.preview = renderPreview(res, 12);
     const g = renderGuide(res, 22); state.guide = g.canvas; state.bead2num = g.bead2num;
     paint(); buildLegend(); buildBrushes(); status.textContent = '';
+    track('generate', { grid: res.gw, colors: res.used.length, ai: aiActive() });
   } catch (e) {
     status.textContent = '❌ ' + e.message;
   } finally { $('#genBtn').disabled = false; }
@@ -238,11 +260,12 @@ function legendCanvas() {
 
 const save = (cv, name) => { const a = document.createElement('a');
   a.download = name; a.href = cv.toDataURL('image/png'); a.click(); };
-$('#dlPreview').onclick = () => state.preview && save(state.preview, '拼豆成品预览.png');
-$('#dlGuide').onclick = () => state.guide && save(state.guide, '拼豆色号指导图.png');
-$('#dlList').onclick = () => state.res && save(legendCanvas(), '拼豆配料清单.png');
+$('#dlPreview').onclick = () => { if (state.preview) { save(state.preview, '拼豆成品预览.png'); track('download', { t: 'preview' }); } };
+$('#dlGuide').onclick = () => { if (state.guide) { save(state.guide, '拼豆色号指导图.png'); track('download', { t: 'guide' }); } };
+$('#dlList').onclick = () => { if (state.res) { save(legendCanvas(), '拼豆配料清单.png'); track('download', { t: 'list' }); } };
 $('#printBtn').onclick = () => {
   if (!state.res) return;
+  track('print');
   const guideUrl = state.guide.toDataURL('image/png');
   const listUrl = legendCanvas().toDataURL('image/png');
   const w = window.open('', '_blank');
@@ -258,7 +281,7 @@ $('#printBtn').onclick = () => {
 };
 
 // ---------- 打赏 ----------
-$('#tipBtn').onclick = () => $('#tipModal').hidden = false;
+$('#tipBtn').onclick = () => { $('#tipModal').hidden = false; track('open_tip'); };
 $('#tipClose').onclick = () => $('#tipModal').hidden = true;
 $('#tipModal').onclick = e => { if (e.target.id === 'tipModal') $('#tipModal').hidden = true; };
 // 若放了收款码图片 web/assets/tip.png 自动显示

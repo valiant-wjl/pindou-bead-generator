@@ -250,7 +250,7 @@ def _consolidate(grid, fg, min_cells):
     return out
 
 
-def process(img, grid_w=110, k=8, remove_bg=True, bg_thresh=235,
+def process(img, grid_w=56, k=8, remove_bg=True, bg_thresh=235,
             flatten=1, despeckle=True, edge_trim=1, autocrop=True,
             saturation=1.15, min_area=10, detail=True, max_colors=20, merge_delta=8):
     """

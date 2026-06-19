@@ -66,9 +66,14 @@
       </select>
       <p class="muted tiny">291 通用色，色号自动换成所选品牌。没有的色可在配料里 ✕ 排除。</p>
 
-      <h3>③ 拼豆参数</h3>
-      <label class="row">网格宽度 <output id="gridOut">100</output>
-        <input type="range" id="gridW" min="30" max="180" value="100"></label>
+      <h3>③ 尺寸 & 参数</h3>
+      <div class="presets" id="presets">
+        <button data-g="29">迷你 29</button><button data-g="48" class="sel">小 48</button>
+        <button data-g="64">中 64</button><button data-g="90">大 90</button>
+      </div>
+      <label class="row">网格宽度 <output id="gridOut">48</output>
+        <input type="range" id="gridW" min="20" max="160" value="48"></label>
+      <p class="muted tiny" id="beadEst">约 1500 颗 · 拼豆圈最爱 1~2 千颗的尺寸</p>
       <label class="row">最大色数 <output id="mcOut">20</output>
         <input type="range" id="maxColors" min="6" max="36" value="20"></label>
       <label class="row">鲜艳度 <output id="satOut">1.15</output>

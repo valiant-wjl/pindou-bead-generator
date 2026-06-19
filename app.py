@@ -54,7 +54,7 @@ with st.sidebar:
     beadgen.set_palette(_pals[pal_disp])
 
     st.subheader("③ 拼豆参数")
-    grid_w = st.slider("网格宽度（格子数）", 20, 180, 100, step=1,
+    grid_w = st.slider("网格宽度（格子数）", 20, 180, 48, step=1,
                        help="对应拼豆板大小。越大越清晰、小特征(如logo)越能保住，但越费豆。")
     detail = st.checkbox("保细节模式（推荐，默认开）", value=True,
                          help="卡通 / AI输出 / 像素 / logo 都用这个：逐格匹配保锐利 + 合并相近色，"

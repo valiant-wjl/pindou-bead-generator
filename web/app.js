@@ -37,6 +37,7 @@ function setSource(img, ev) {
   state.srcCanvas = cv; state.aiCanvas = null;
   $('#workspace').hidden = false;
   $('#workspace').scrollIntoView({ behavior: 'smooth' });
+  updateEst();
   track(ev || 'upload');
   generate();
 }
@@ -76,6 +77,26 @@ drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) l
 const bind = (id, out, fn) => { const el = $('#' + id); const o = $('#' + out);
   el.oninput = () => { o.textContent = fn ? fn(el.value) : el.value; }; };
 bind('gridW', 'gridOut'); bind('maxColors', 'mcOut'); bind('sat', 'satOut'); bind('minArea', 'maOut');
+
+// 尺寸预设 + 实时颗数估算（拼豆圈最爱 1~2 千颗）
+function updateEst() {
+  const gw = +$('#gridW').value;
+  const gh = state.srcCanvas ? Math.round(gw * state.srcCanvas.height / state.srcCanvas.width) : Math.round(gw * 1.1);
+  const est = Math.round(gw * gh * 0.6 / 50) * 50;
+  const tag = est <= 2500 ? ' · 这个尺寸最受欢迎 👍' : est >= 5000 ? ' · 偏大、挺费豆' : '';
+  $('#beadEst').textContent = `约 ${est} 颗${tag}`;
+}
+$('#gridW').addEventListener('input', () => {
+  document.querySelectorAll('#presets button').forEach(b => b.classList.remove('sel'));
+  updateEst();
+});
+document.querySelectorAll('#presets button').forEach(btn => btn.onclick = () => {
+  document.querySelectorAll('#presets button').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  $('#gridW').value = btn.dataset.g; $('#gridOut').textContent = btn.dataset.g;
+  updateEst();
+  if (state.srcCanvas) { track('preset', { g: btn.dataset.g }); generate(); }
+});
 $('#useAI').onchange = () => { if ($('#useAI').checked) $('#aiBox').open = true; };
 
 // 持久化 AI key

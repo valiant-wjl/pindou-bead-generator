@@ -49,6 +49,9 @@ main{max-width:1100px;margin:0 auto;padding:26px 18px 70px}
 .row{display:block;margin:10px 0;font-size:14px;font-weight:700}
 .row input[type=range]{width:100%;accent-color:var(--p);margin-top:4px}
 .row output{float:right;color:var(--p);font-weight:900}
+.presets{display:flex;gap:6px;margin-bottom:8px}
+.presets button{flex:1;padding:7px 4px;border:2px solid var(--ink);background:#fff;font-weight:800;cursor:pointer;font-size:13px}
+.presets button.sel{background:var(--y)}
 select,input[type=password],textarea{width:100%;padding:10px;border:3px solid var(--ink);
   font-size:14px;margin-top:6px;background:#fff;font-family:inherit;font-weight:700}
 details{margin:8px 0;font-size:13px}summary{cursor:pointer;color:var(--muted);font-weight:700}

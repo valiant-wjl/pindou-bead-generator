@@ -2,7 +2,9 @@ import { process, beadName, beadRGB } from './beadcore.js';
 import { renderPreview, renderGuide } from './render.js';
 
 const $ = s => document.querySelector(s);
-const state = { srcCanvas: null, aiCanvas: null, preview: null, guide: null, bead2num: {}, res: null, view: 'preview', excluded: new Set(), editing: false, brush: null, curCell: 12 };
+const state = { srcCanvas: null, aiCanvas: null, preview: null, guide: null, bead2num: {}, res: null, view: 'preview', excluded: new Set(), editing: false, brush: null, curCell: 12, brand: 'MARD' };
+$('#brand').onchange = () => { state.brand = $('#brand').value;
+  if (state.res) { buildLegend(); buildBrushes(); } };
 
 // ---------- 上传 ----------
 function loadFile(file) {
@@ -123,7 +125,7 @@ function buildBrushes() {
     const c = beadRGB(b);
     const btn = document.createElement('button'); btn.className = 'brush';
     btn.style.background = `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
-    btn.title = beadName(b);
+    btn.title = beadName(b, state.brand);
     if (state.brush === b) btn.classList.add('sel');
     btn.onclick = () => { state.brush = b; markBrush(); };
     wrap.appendChild(btn);
@@ -192,7 +194,7 @@ function buildLegend() {
     const d = document.createElement('div'); d.className = 'item';
     const sw = document.createElement('span'); sw.className = 'sw';
     sw.style.cssText = swHTML(b); sw.textContent = state.bead2num[b];
-    const lbl = document.createElement('span'); lbl.textContent = `${beadName(b)} × ${res.counts[b]}`;
+    const lbl = document.createElement('span'); lbl.textContent = `${beadName(b, state.brand)} × ${res.counts[b]}`;
     const x = document.createElement('button'); x.className = 'xbtn'; x.textContent = '✕';
     x.title = '排除这个颜色'; x.onclick = () => { state.excluded.add(b); generate(); };
     d.append(sw, lbl, x); leg.appendChild(d);
@@ -203,7 +205,7 @@ function buildLegend() {
   [...state.excluded].forEach(b => {
     const d = document.createElement('div'); d.className = 'item';
     const sw = document.createElement('span'); sw.className = 'sw'; sw.style.cssText = swHTML(b); sw.textContent = '✕';
-    const lbl = document.createElement('span'); lbl.textContent = beadName(b) + ' （恢复）';
+    const lbl = document.createElement('span'); lbl.textContent = beadName(b, state.brand) + ' （恢复）';
     d.append(sw, lbl); d.style.cursor = 'pointer'; d.style.opacity = '.6';
     d.onclick = () => { state.excluded.delete(b); generate(); };
     ex.appendChild(d);
@@ -229,7 +231,7 @@ function legendCanvas() {
     x.strokeStyle = '#0003'; x.strokeRect(px + .5, py + .5, 26, 26);
     x.fillStyle = (c[0] + c[1] + c[2]) > 360 ? '#000' : '#fff';
     x.fillText(String(state.bead2num[b]), px + 6, py + 20);
-    x.fillStyle = '#3a3531'; x.fillText(`${beadName(b)} × ${res.counts[b]}`, px + 36, py + 20);
+    x.fillStyle = '#3a3531'; x.fillText(`${beadName(b, state.brand)} × ${res.counts[b]}`, px + 36, py + 20);
   });
   return cv;
 }

@@ -1,8 +1,7 @@
 // 拼豆核心算法（浏览器端）。对应 Python beadgen 的「保细节模式」：
 // 主色降采样 → 背景剥离 → 逐格最近邻匹配(Lab ΔE) → ΔE 合并相近色 → 去杂点 → 最小色块合并。
-import { PALETTE } from './palette.js';
-
-const NAMES = Object.keys(PALETTE);
+import { COLORS, BRANDS } from './colors.js';
+export { BRANDS };
 
 // ---- sRGB -> CIELab (D65) ----
 function rgb2lab(r, g, b) {
@@ -18,7 +17,7 @@ function rgb2lab(r, g, b) {
   return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
 }
 
-const PAL_RGB = NAMES.map(n => PALETTE[n]);
+const PAL_RGB = COLORS.map(c => c.rgb);
 const PAL_LAB = PAL_RGB.map(c => rgb2lab(c[0], c[1], c[2]));
 
 // active: 可选，限定只在这些色板下标里找（用于排除颜色 / 只用手里有的色）
@@ -241,8 +240,8 @@ export function process(srcCanvas, opts = {}) {
   const counts = {};
   for (const v of grid) if (v >= 0) counts[v] = (counts[v] || 0) + 1;
   const used = Object.keys(counts).map(Number).sort((a, b) => counts[b] - counts[a]);
-  return { grid, gw, gh, used, counts, names: NAMES, palette: PALETTE };
+  return { grid, gw, gh, used, counts };
 }
 
-export function beadName(i) { return NAMES[i]; }
+export function beadName(i, brand) { return COLORS[i].codes[brand || 'MARD'] || ''; }
 export function beadRGB(i) { return PAL_RGB[i]; }

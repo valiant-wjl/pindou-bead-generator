@@ -9,13 +9,18 @@
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">🧩 拼豆喵 <span class="sub">PinDouMiao</span></div>
-  <button id="tipBtn" class="tip-btn">☕ 请我喝奶茶</button>
+  <div class="brand">🐱 拼豆喵 <span class="sub">PINDOUMIAO</span></div>
+  <button id="tipBtn" class="tip-btn">🐾 投喂猫粮</button>
 </header>
 
 <main>
-  <p class="tagline">上传图片 → 自动生成<b>带色号的拼豆指导图 + 配料清单</b>。
-    宠物 / 人物照片可一键 <b>AI 卡通化</b> 再转豆。</p>
+  <p class="tagline">拍张照片，<b>把毛孩子变成可以拼出来的拼豆</b> 🫘<br>
+    自动生成带色号的指导图 + 配料清单，宠物/人物照片可一键 <b>AI 卡通化</b>。</p>
+  <div class="beadrow">
+    <i style="background:#ff7a5c"></i><i style="background:#ffc23d"></i><i style="background:#22c3ad"></i>
+    <i style="background:#8b6fd6"></i><i style="background:#5aa9ff"></i><i style="background:#ff9ec4"></i>
+    <i style="background:#ffc23d"></i><i style="background:#22c3ad"></i><i style="background:#ff7a5c"></i>
+  </div>
 
   <section class="uploader" id="drop">
     <input type="file" id="file" accept="image/*" hidden>
@@ -36,8 +41,15 @@
         <p class="muted tiny">浏览器直连 OpenRouter（图生图 seedream）。约 $0.04/张。Key 只存在你本机。</p>
       </details>
 
-      <h3>② 色卡</h3>
-      <select id="palette"><option value="mard221">MARD 221 标准色卡</option></select>
+      <h3>② 色卡品牌 <span class="muted">（色号按你的盒子）</span></h3>
+      <select id="brand">
+        <option value="MARD">MARD（221/291 标准）</option>
+        <option value="COCO">COCO</option>
+        <option value="漫漫">漫漫</option>
+        <option value="盼盼">盼盼</option>
+        <option value="咪小窝">咪小窝</option>
+      </select>
+      <p class="muted tiny">291 通用色，色号自动换成所选品牌。没有的色可在配料里 ✕ 排除。</p>
 
       <h3>③ 拼豆参数</h3>
       <label class="row">网格宽度 <output id="gridOut">100</output>
@@ -87,8 +99,8 @@
 <div class="modal" id="tipModal" hidden>
   <div class="modal-card">
     <button class="close" id="tipClose">✕</button>
-    <h3>☕ 请作者喝杯奶茶</h3>
-    <p class="muted">这个小工具帮到你了的话，可以请作者喝杯奶茶，支持继续做下去 🥰</p>
+    <h3>🐾 投喂猫粮</h3>
+    <p class="muted">拼豆喵帮到你了的话，可以投喂一点猫粮，让作者有动力继续养这只喵 🐱💕</p>
     <div class="qr" id="qrSlot">（放你的收款码图片：web/assets/tip.png）</div>
   </div>
 </div>
